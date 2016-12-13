@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+    	* { padding: 0; margin: 0; }
+    	<!--canvas { background: -webkit-linear-gradient(top, #7db9e8 0%, #000000 45%, #000000 85%, #840000 100%); display: block; margin: 0 auto;}-->
+		canvas { background: #000000; display: block; margin: 0 auto;}
+    </style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="400" height="600"></canvas>
+
+<script>
+	// JavaScript code goes here
+	var canvas = document.getElementById("myCanvas");
+	var ctx = canvas.getContext("2d");
+	var plane_w = 20;
+	var x = (canvas.width-plane_w)/2;
+	var y = canvas.height-plane_w-10;
+	var rightPressed = false;
+	var leftPressed = false;
+	var upPressed = false;
+	var downPressed = false;
+	//var BulletsCount = 1;
+	var Bullets = [];
+	var movespeed = 2;
+	var bullet_ctr = 0;
+	var fire = false;
+	var cycle = 12;
+	var enemies = [];
+	var SuperPower = false;
+	
+	document.addEventListener("keydown", keyDownHandler, false);
+	document.addEventListener("keyup", keyUpHandler, false);
+	
+	function keyDownHandler(e) {
+		if(e.keyCode == 39) {
+			rightPressed = true;
+		}
+		else if(e.keyCode == 37) {
+			leftPressed = true;
+		}
+		else if(e.keyCode == 38) {
+			upPressed = true;
+		}
+		else if(e.keyCode == 40) {
+			downPressed = true;
+		}
+		else if(e.keyCode == 32) {
+			fire = true;
+		}
+	}
+
+	function keyUpHandler(e) {
+		if(e.keyCode == 39) {
+			rightPressed = false;
+		}
+		else if(e.keyCode == 37) {
+			leftPressed = false;
+		}
+		else if(e.keyCode == 38) {
+			upPressed = false;
+		}
+		else if(e.keyCode == 40) {
+			downPressed = false;
+		}
+		else if(e.keyCode == 32) {
+			fire = false;
+		}
+	}
+	
+	function drawPlane(x,y,d,s,w) {
+		ctx.beginPath();
+		//ctx.rect(x, y, plane_w, plane_w);
+		if(d){
+			ctx.moveTo(x,y+plane_w);
+			ctx.lineTo(x+plane_w,y+plane_w);
+			ctx.lineTo(x+plane_w/2,y);
+			ctx.fillStyle  = "#FFFFFF";
+			ctx.fill();
+			ctx.closePath();
+			if(!(bullet_ctr % cycle) && fire){
+				if(SuperPower){
+					Bullets[Bullets.length] = { x: x+10, y: y-6, d: 1 ,c: "#eeff00"};
+					Bullets[Bullets.length] = { x: x+10, y: y-6, d: 7 ,c: "#eeff00"};
+				}
+				Bullets[Bullets.length] = { x: x+10, y: y-6, d: 0 ,c: "#eeff00"};
+			}
+		}
+		else {
+			if(s == 1){
+				ctx.moveTo(x,y);
+				ctx.lineTo(x+w,y);
+				ctx.lineTo(x+w/2,y+w);
+				ctx.fillStyle  = "#FF0000";
+				ctx.fill();
+				if(!(bullet_ctr % (cycle*2))){
+					Bullets[Bullets.length] = { x: x+10, y: y+10,d: 4 ,c: "#ff0000"};
+				}
+			}
+			else if(s == 2){
+				ctx.arc(x, y, w, 0, 2*Math.PI);
+				ctx.strokeStyle = "#FF0000";
+                ctx.stroke();
+				if(!(bullet_ctr % (cycle*3))){
+					Bullets[Bullets.length] = { x: x, y: y-10, d: 0 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x+7, y: y-7, d: 1 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x+10, y: y, d: 2 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x+7, y: y+7, d: 3 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x, y: y+10, d: 4 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x-7, y: y+7, d: 5 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x-10, y: y, d: 6 ,c: "#ff0000"};
+					Bullets[Bullets.length] = { x: x-7, y: y-7, d: 7 ,c: "#ff0000"};
+				}
+			}
+			ctx.closePath();
+		}
+	}
+	
+		
+	function drawBullet() {
+		/*Bullets[0] = { x: x+10, y: y-6};
+		ctx.beginPath();
+		ctx.arc(Bullets[0].x, Bullets[0].y, 4, 0, 2*Math.PI);
+		ctx.fillstyle="#FFFFFF";
+		ctx.fill();
+		ctx.closePath();
+		Bullets[0].y -= 3;*/
+		for(r=0; r<Bullets.length; r++) {
+			if(Bullets[r].x>0 && Bullets[r].x<canvas.width && Bullets[r].y>0 && Bullets[r].y<canvas.height){
+				ctx.beginPath();
+				ctx.arc(Bullets[r].x, Bullets[r].y, 2, 0, 2*Math.PI);
+				ctx.fillStyle = Bullets[r].c;
+                ctx.fill();
+				ctx.closePath();
+				switch(Bullets[r].d){
+					case 0:
+						Bullets[r].y -= 3;
+						break;
+					case 1:
+						Bullets[r].y -= 2;
+						Bullets[r].x += 2;
+						break;
+					case 2:
+						Bullets[r].x += 3;
+						break;
+					case 3:
+						Bullets[r].y += 2;
+						Bullets[r].x += 2;
+						break;
+					case 4:
+						Bullets[r].y += 3;
+						break;
+					case 5:
+						Bullets[r].y += 2;
+						Bullets[r].x -= 2;
+						break;
+					case 6:
+						Bullets[r].x -= 3;
+						break;
+					case 7:
+						Bullets[r].y -= 2;
+						Bullets[r].x -= 2;
+						break;
+				}
+			}
+			else {
+				Bullets.splice(r,1);
+			}
+		}
+		bullet_ctr ++;
+		
+	}
+	function drawPlanes() {
+		drawPlane(x,y,true,1,0);
+		for(i=0; i<enemies.length; i++){
+			drawPlane(enemies[i].x,enemies[i].y,false,enemies[i].s,enemies[i].w);
+			if(enemies[i].x + enemies[i].dx > canvas.width-enemies[i].w || enemies[i].x + enemies[i].dx < enemies[i].w) {
+				enemies[i].dx = -enemies[i].dx;
+			}
+			if(enemies[i].y + enemies[i].dy > canvas.height-enemies[i].w || enemies[i].y + enemies[i].dy < enemies[i].w) {
+				enemies[i].dy = -enemies[i].dy;
+			}
+			enemies[i].x += enemies[i].dx;
+			enemies[i].y += enemies[i].dy;
+		}
+	}
+	
+	function draw() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		if(!(enemies.length)){
+			//enemies[enemies.length] = {x: 100, y: 200, s: 1 ,w: plane_w};
+			enemies[enemies.length] = {x: 300, y: 50, s: 2 ,w: 10, dx: 1,dy: 1};
+			enemies[enemies.length] = {x: 100, y: 50, s: 2 ,w: 10, dx: -1,dy: 1};
+		}
+		drawBullet();
+		drawPlanes();
+		if(rightPressed && x < canvas.width-plane_w) {
+			x += movespeed;
+		}
+		else if(leftPressed && x > 0) {
+			x -= movespeed;
+		}
+		else if(upPressed && y > 0) {
+			y -= movespeed;
+		}
+		else if(downPressed && y < canvas.height-plane_w-2) {
+			y += movespeed;
+		}
+	}
+	setInterval(draw, 10);
+</script>
+
+</body>
+</html>
