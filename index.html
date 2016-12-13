@@ -32,7 +32,7 @@
 	var cycle = 12;
 	var enemies = [];
 	var SuperPower = false;
-	
+	var pause=false;
 	document.addEventListener("keydown", keyDownHandler, false);
 	document.addEventListener("keyup", keyUpHandler, false);
 	
@@ -70,12 +70,16 @@
 		else if(e.keyCode == 32) {
 			fire = false;
 		}
+		else if(e.keyCode==80){
+			pause=!pause;
+		}
 	}
 	
 	function drawPlane(x,y,d,s,w) {
 		ctx.beginPath();
 		//ctx.rect(x, y, plane_w, plane_w);
 		if(d){
+		
 			ctx.moveTo(x,y+plane_w);
 			ctx.lineTo(x+plane_w,y+plane_w);
 			ctx.lineTo(x+plane_w/2,y);
@@ -189,15 +193,30 @@
 		}
 	}
 	
+	function collisionDetection() {
+		for(r=0; r<Bullets.length; r++){
+			
+			if( (Bullets[r].x<x+15 && Bullets[r].x>x+5) && (Bullets[r].y<y+15 && Bullets[r].y>y+5) ){boom();}
+				
+		}
+	}
+	function boom(){
+	pause=1;
+	
+	}
+	
+	
 	function draw() {
+		if(pause)return;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		if(!(enemies.length)){
-			//enemies[enemies.length] = {x: 100, y: 200, s: 1 ,w: plane_w};
-			enemies[enemies.length] = {x: 300, y: 50, s: 2 ,w: 10, dx: 1,dy: 1};
-			enemies[enemies.length] = {x: 100, y: 50, s: 2 ,w: 10, dx: -1,dy: 1};
+			enemies[enemies.length] = {x: 100, y: 200, s: 1 ,w:20, dx: -1,dy: 1};
+			//enemies[enemies.length] = {x: 300, y: 50, s: 2 ,w: 10, dx: 1,dy: 1};
+			//enemies[enemies.length] = {x: 100, y: 50, s: 2 ,w: 10, dx: -1,dy: 1};
 		}
 		drawBullet();
 		drawPlanes();
+		collisionDetection();
 		if(rightPressed && x < canvas.width-plane_w) {
 			x += movespeed;
 		}
@@ -211,7 +230,7 @@
 			y += movespeed;
 		}
 	}
-	setInterval(draw, 10);
+	var ssss=setInterval(draw, 10);
 </script>
 
 </body>
