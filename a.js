@@ -32,5 +32,5 @@ enemies[enemies.length] = {x: 100, y: 100, w: 20, dx: 1, dy: 0, t: 0, speed: 2, 
 }
 
 function boss(){
-enemies[enemies.length] = {x: 300, y: 50, w: 10, dx:2, dy: 0, t: 2, speed: 1, color: "#FF00FF"};
+enemies[enemies.length] = {x: 200, y: 50, w: 25, dx: 2, dy: 2, t: 2, speed: 2, color: "#FF00FF", blood: 20};
 }
