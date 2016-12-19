@@ -41,6 +41,7 @@
 	var level_ctr = level_refresh-10;
 	var posx=0;
 	var boss_mode=0;
+	var SuperPower_ctr = 0;
 	//var BulletsCount = 1;
 	var Bullets = [];
 	Bullets[0] = [];
@@ -50,6 +51,7 @@
 	var score = 0;
 	var level_flag=0;
 	var enemies = [];
+	var level = 0;
 	var pause=false;
 	document.addEventListener("keydown", keyDownHandler, false);
 	document.addEventListener("keyup", keyUpHandler, false);
@@ -166,6 +168,10 @@
 							ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 1, 0, 2*Math.PI);
 							Bullets[l][r].y += Bullets[l][r].dy;
 							Bullets[l][r].x += Bullets[l][r].dx;
+							break;
+						case 10://super_buff
+							ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 5, 0, 2*Math.PI);
+							Bullets[l][r].y += 5;
 							break;
 						default:
 							/*ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 1, 0, 2*Math.PI);		
@@ -307,6 +313,8 @@
 		else ctx.fillStyle  = "#FFFFFF";
 		ctx.fill();
 		ctx.closePath();
+		if(SuperPower_ctr) SuperPower_ctr --;
+		if(!SuperPower_ctr) SuperPower = false;
 		if(!(bullet_ctr % cycle*speed) && fire){
 			if(SuperPower){
 				Bullets[0][Bullets[0].length] = { x: x+plane_w/2, y: y+10, d: 0 ,c: "#FFFF44"};
@@ -396,6 +404,12 @@
 		score += point;
 	}
 	
+	function spawn_buff(){
+		if(!(n = Math.floor(Math.random() * 20)%5))
+			Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 5, d: 10, c: "#FFFF44"};
+		//console.log("Buff!");
+	}
+	
 	function collisionDetection() {
 	//console.log(enemies.length);
 	//Bullets[0][Bullets[0].length]
@@ -415,6 +429,7 @@
 				else if(enemies[p].t == 1 || enemies[p].t == 3){
 					if((Bullets[0][c].y-enemies[p].y) * (Bullets[0][c].y-enemies[p].y) + (Bullets[0][c].x-enemies[p].x) * (Bullets[0][c].x-enemies[p].x) <= enemies[p].w * enemies[p].w){
 						Bullets[0].splice(c,1);
+						spawn_buff();
 						enemies.splice(p,1);
 						killplane(25);
 					}
@@ -424,6 +439,7 @@
 						Bullets[0].splice(c,1);
 						enemies[p].blood --;
 						if(enemies[p].blood<=0){
+							spawn_buff();
 							enemies.splice(p,1);
 							killplane(150);
 						}
@@ -435,17 +451,24 @@
 			if((Bullets[1][c].y-IcanFly.y)>=2*(Bullets[1][c].x-IcanFly.x) &&
 				(Bullets[1][c].y-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x) &&
 				Bullets[1][c].y<IcanFly.y+IcanFly.plane_w){
-				Bullets[1].splice(c,1);
-				console.log("injured");
-				if(blood > 1) blood --;
-				else if(life > 0){
-					life --;
-					blood = blood_max;
+				if(Bullets[1][c].d != 10){
+					console.log("injured");
+					if(blood > 1) blood --;
+					else if(life > 0){
+						life --;
+						blood = blood_max;
+					}
+					else {
+						alert("Game Over!!\nYour score is "+score+"!");
+						document.location.reload();
+					}
 				}
 				else {
-					alert("Game Over!!\nYour score is "+score+"!");
-                    document.location.reload();
+					console.log("Buff_activated");
+					SuperPower = true;
+					SuperPower_ctr = 500;
 				}
+				Bullets[1].splice(c,1);
 			}
 		}
 	}
@@ -472,16 +495,16 @@
 		}
 		if(level_ctr == level_refresh) {
 			level_ctr = 0;
-			switch(level_flag){
-				/*case 0:level1();break;
+			/*switch(level_flag){
+				case 0:level1();break;
 				case 1:level2();break;
 				case 2:level3();break;
 				case 3:level4();break;
 				case 4:boss();break;
-				default:level1();break;*/
 				default:boss();break;
-			}
-			level_flag++;
+			}*/
+			load_level();
+			level_flag ++;
 		}
 		drawBullet();
 		drawPlanes();
