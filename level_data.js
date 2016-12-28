@@ -1,7 +1,7 @@
 function load_level(){
 	switch(level){
 		case 0:
-			//spawn_buff(true,2);
+			spawn_buff(true,2);
 			enemies[enemies.length] = {x: 300, y: 25, w: 20, dx: -3, dy: 0, t: 0, speed: 2, color: "#22ff22",
 				x_upper_limit: 400, x_lower_limit: 150, y_upper_limit: 500, y_lower_limit: 0};
 			enemies[enemies.length] = {x: 100, y: 25, w: 20, dx: 3, dy: 0, t: 0, speed: 2, color: "#22ff22",

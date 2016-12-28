@@ -77,15 +77,7 @@
 		else if(e.keyCode == 32) fire = false;
 		else if(e.keyCode == 80) pause=!pause;
 	}
-	
-	function spawn_buff(possibility,kind){
-		if(!(n = Math.floor(Math.random() * 20)%5) || possibility){
-			if(kind == 1)Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 5, d: 10, c: "#FFFF44", buff: 1};
-			else if(kind == 2)Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 5, d: 10, c: "#5500FF", buff: 2};
-		}
-		//console.log("Buff!");
-	}
-	
+
 	function drawBullet() {
 		var speed1 = 2;//1
 		var speed2 = 4;//2
@@ -162,7 +154,7 @@
 							break;
 						case 10://super_buff
 							ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 5, 0, 2*Math.PI);
-							Bullets[l][r].y += Bullets[l][r].kind*2+Bullets[l][r].kind;
+							Bullets[l][r].y += Bullets[l][r].buff*2+Bullets[l][r].buff;
 							break;
 						default:
 							/*ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 1, 0, 2*Math.PI);		
@@ -291,7 +283,7 @@
 		ctx.fill();
 		ctx.closePath();
 		if(SuperPower_ctr && enemies.length) SuperPower_ctr --;
-		if(!SuperPower_ctr) SuperPower = 0;
+		if(SuperPower_ctr<1) SuperPower = 0;
 		if(!(bullet_ctr % cycle*speed) && fire){
 			if(SuperPower == 1){
 				Bullets[0][Bullets[0].length] = { x: x+plane_w/2, y: y+10, d: 0 ,c: "#FFFF44"};
@@ -310,6 +302,13 @@
 			else Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: "#FFFFFF"};
 		}
 	}	
+		
+	function spawn_buff(possibility,kind){
+		if(!(n = Math.floor(Math.random() * 20)%5) || possibility){
+			if(kind == 1) Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 0+5, d: 10, c: "#FFFF44", buff: 1};
+			else if(kind == 2) Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 0+5, d: 10, c: "#5500FF", buff: 2};
+		}
+	}
 	
 	function bossshoot(mode,bx,by,bw,bcolor,bspeed){
 		var appear1 = 5*3/2;
@@ -451,7 +450,7 @@
 			boss_mode++;
 		}
 		else if(boss_mode == 1024 || enemies.length == 1){
-			spawn_buff(true,2);
+			spawn_buff(false,2);
 			boss_mode = 0;
 		}
 		else if(boss_mode<1024){
@@ -575,18 +574,18 @@
 					//console.log("Buff_activated");
 					if(SuperPower == 1 && Bullets[1][c].buff == 2){
 					SuperPower = Bullets[1][c].buff;
-					SuperPower_ctr = 1000;
+					SuperPower_ctr = 600;
 					}
 					else if(SuperPower == 2 && Bullets[1][c].buff == 1){
-					SuperPower_ctr += 300;
+					SuperPower_ctr += 180;
 					}
 					else if(!SuperPower){
 					SuperPower = Bullets[1][c].buff;
-					SuperPower_ctr += Bullets[1][c].buff*500;
+					SuperPower_ctr += Bullets[1][c].buff*300;
 					}
 					else if(SuperPower == Bullets[1][c].buff){
 					SuperPower = Bullets[1][c].buff;
-					SuperPower_ctr += Bullets[1][c].buff*250;
+					SuperPower_ctr += Bullets[1][c].buff*150;
 					}
 				}
 				Bullets[1].splice(c,1);
