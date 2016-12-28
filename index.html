@@ -28,9 +28,13 @@
 	var life = 3;
 	var movespeed = 2;
 	var SuperPower = 0;//normally it should be 0
+	var SuperPower_ctr = 0;//normally it should be 0
 	var ATKspeed = 2;//default 5
 	var cycle = 12;
 	var level = 0;//start level default 0
+	
+	var super_color1 = "#ffff44";
+	var super_color2 = "#FF00FF";//"#5599FF";
 	/////////////////////////////
 	var canvas = document.getElementById("myCanvas");
 	var canvas2 = document.getElementById("myCanvas2");
@@ -47,8 +51,9 @@
 	var level_text = "1-1";
 	var posx=0;
 	var boss_mode=0;
-	var SuperPower_ctr = 0;
+	var effect;
 	var Bullets = [];
+	effect = [];
 	Bullets[0] = [];
 	Bullets[1] = [];
 	var bullet_ctr = 0;
@@ -58,6 +63,7 @@
 	var enemies = [];
 	var pause=false;
 	var boss_hurt = 0;
+	var split_num = 100;
 	document.addEventListener("keydown", keyDownHandler, false);
 	document.addEventListener("keyup", keyUpHandler, false);
 	
@@ -78,6 +84,14 @@
 		else if(e.keyCode == 80) pause=!pause;
 	}
 
+	function between_level_refresh_status() {
+		blood = blood_max;
+		life ++;
+		effect[effect.length] = {x: IcanFly.x, y: IcanFly.y, w: 1, t: true, text: "+1", c: "#00ff00"};
+		/*SuperPower_ctr = 0;
+		SuperPower = 0;*/
+	}
+	
 	function drawBullet() {
 		var speed1 = 2;//1
 		var speed2 = 4;//2
@@ -156,34 +170,35 @@
 							ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 5, 0, 2*Math.PI);
 							Bullets[l][r].y += Bullets[l][r].buff*2+Bullets[l][r].buff;
 							break;
-						default:
-							/*ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 1, 0, 2*Math.PI);		
+						case 11://split bullet
+							ctx.arc(Bullets[l][r].x, Bullets[l][r].y, 3, 0, 2*Math.PI);
 							Bullets[l][r].y += Bullets[l][r].dy;
-							//Bullets[l][r].x = Bullets[l][r].x>IcanFly.x?Bullets[l][r].x-1 : Bullets[l][r].x+1 ;
-							if(Bullets[l][r].x>IcanFly.x-30&&Bullets[l][r].x<IcanFly.x+30){
-								
-								var tell = Bullets[l][r].x>IcanFly.x;
-								
-								console.log("hi:"+Bullets[l][r].dx);
-								Bullets[l][r].x = tell?Bullets[l][r].x+Bullets[l][r].dx : Bullets[l][r].x+Bullets[l][r].dx ;
-								if(Bullets[l][r].dy<0){								
-									if(Bullets[l][r].y>IcanFly.y)Bullets[l][r].dx*=-1;
-									
-								}
-								else{
-									if(Bullets[l][r].y<IcanFly.y)Bullets[l][r].dx*=-1;
-									
-								}
-								//if(Bullets[l][r].x>IcanFly.x){Bullets[l][r].dx=Bullets[l][r].dx?}
-								
-							}
+							Bullets[l][r].x += Bullets[l][r].dx;
+							
+							if(Bullets[l][r].sp) Bullets[l][r].sp --;
 							else{
-								Bullets[l][r].x+=Bullets[l][r].dx;
-							}*/
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 0 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 1 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 2 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 3 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 4 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 5 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 6 ,c: Bullets[l][r].c};
+								Bullets[l][Bullets[l].length] = { x: Bullets[l][r].x, y: Bullets[l][r].y, d: 7 ,c: Bullets[l][r].c};
+								Bullets[l].splice(r,1);
+							}
+							break;
+						default:
 							break;
 					}
-					ctx.strokeStyle = Bullets[l][r].c;
-					ctx.stroke();
+					if(Bullets[l][r].d == 10){
+						ctx.fillStyle = Bullets[l][r].c;
+						ctx.fill();
+					}
+					else{
+						ctx.strokeStyle = Bullets[l][r].c;
+						ctx.stroke();
+					}
 					ctx.closePath();
 				}
 				else {
@@ -194,7 +209,7 @@
 		bullet_ctr ++;
 	}
 	
-	function drawPlane_Triangle(x,y,w,speed,color) {
+	function drawPlane_Triangle(x,y,w,speed,color,bullet) {
 		ctx.beginPath();
 		ctx.moveTo(x-w/2+1,y);
 		ctx.lineTo(x,y+w/4);
@@ -211,11 +226,21 @@
 		ctx.lineTo(x+w/2,y+w/2);
 		ctx.lineTo(x+w/2-2,y+w/2);
 		ctx.lineTo(x+w/2-2,y);
-		ctx.fillStyle  = color;
+		ctx.fillStyle = color;
 		ctx.fill();
 		ctx.closePath();
 		if(!(bullet_ctr % (cycle*speed))){
-			Bullets[1][Bullets[1].length] = { x: x, y: y+w+1,d: 4 ,c: color};
+			switch(bullet){
+				case 1:
+					Bullets[1][Bullets[1].length] = { x: x, y: y+w+1,d: 4 ,c: color};
+					break;
+				case 2:
+					Bullets[1][Bullets[1].length] = { x: x, y: y+w+1, d: 11, c: color, sp: split_num, dx: 0, dy: 4};
+					break;
+				case 3:
+					Bullets[1][Bullets[1].length] = { x: x, y: y+w+1, d: 8, c: "#66FF66", dx: 0, dy: 2, chase: true};
+					break;
+			}
 		}
 	}
 	
@@ -223,7 +248,8 @@
 		var appear1 = w*3/2;
 		var appear2 = w;
 		ctx.beginPath();
-		ctx.lineWidth = 2;
+		if(w>12) ctx.lineWidth = 4;
+		else ctx.lineWidth = 2;
 		ctx.arc(x, y, w, 0, 2*Math.PI);
 		ctx.strokeStyle = color;
 		ctx.stroke();
@@ -245,8 +271,10 @@
 		}
 	}
 	
-	function drawPlane_Octagon(x,y,w,speed,color) {
+	function drawPlane_Octagon(x,y,w,speed,color,bullet) {
 		ctx.beginPath();
+		if(w>12) ctx.lineWidth = 3;
+		else ctx.lineWidth = 1.5;
 		ctx.moveTo(x-w,y);
 		ctx.lineTo(x,y-w); ctx.lineTo(x+w,y); ctx.lineTo(x,y+w);
 		ctx.closePath();
@@ -254,16 +282,27 @@
 		ctx.stroke();
 		var w2 = w/1.4;
 		ctx.beginPath();
-		ctx.lineWidth = 1.5;
 		ctx.moveTo(x-w2,y-w2); ctx.lineTo(x+w2,y-w2); ctx.lineTo(x+w2,y+w2); ctx.lineTo(x-w2,y+w2);
 		ctx.closePath();
 		ctx.strokeStyle = color;
 		ctx.stroke();
-		if(!(bullet_ctr % (cycle*speed))){
-			Bullets[1][Bullets[1].length] = { x: x, y: y-w+2, d: 0 ,c: color};
-			Bullets[1][Bullets[1].length] = { x: x+w-2, y: y, d: 2 ,c: color};
-			Bullets[1][Bullets[1].length] = { x: x, y: y+w-2, d: 4 ,c: color};
-			Bullets[1][Bullets[1].length] = { x: x-w+2, y: y, d: 6 ,c: color};
+		switch(bullet){
+			case 1:
+				if(!(bullet_ctr % (cycle*speed))){
+					Bullets[1][Bullets[1].length] = { x: x, y: y-w+2, d: 0 ,c: color};
+					Bullets[1][Bullets[1].length] = { x: x+w-2, y: y, d: 2 ,c: color};
+					Bullets[1][Bullets[1].length] = { x: x, y: y+w-2, d: 4 ,c: color};
+					Bullets[1][Bullets[1].length] = { x: x-w+2, y: y, d: 6 ,c: color};
+				}
+				break;
+			case 2:
+				if(!(bullet_ctr % (cycle*speed*2))){
+					Bullets[1][Bullets[1].length] = { x: x, y: y-w+2, d: 11, c: color, sp: split_num, dx: 0, dy: -3};
+					Bullets[1][Bullets[1].length] = { x: x+w-2, y: y, d: 11, c: color, sp: split_num, dx: 3, dy: 0};
+					Bullets[1][Bullets[1].length] = { x: x, y: y+w-2, d: 11, c: color, sp: split_num, dx: 0, dy: 3};
+					Bullets[1][Bullets[1].length] = { x: x-w+2, y: y, d: 11, c: color, sp: split_num, dx: -3, dy: 0};
+				}
+				break;
 		}
 	}
 	
@@ -277,73 +316,74 @@
 		ctx.lineTo(x-2,y+plane_w*3/4); ctx.lineTo(x,y+plane_w/2); ctx.lineTo(x+2,y+plane_w*3/4);
 		ctx.lineTo(x+plane_w/2,y+plane_w); ctx.lineTo(x+2,y+plane_w/4); ctx.lineTo(x+2,y);
 		ctx.lineTo(x-2,y); ctx.lineTo(x-2,y+plane_w/4);
-		if(SuperPower == 1) ctx.fillStyle  = "#FFFF44";
-		else if(SuperPower == 2) ctx.fillStyle  = "#5500FF";
+		if(SuperPower == 1) ctx.fillStyle  = super_color1;
+		else if(SuperPower == 2) ctx.fillStyle  = super_color2;
 		else ctx.fillStyle  = "#FFFFFF";
 		ctx.fill();
 		ctx.closePath();
 		if(SuperPower_ctr && enemies.length) SuperPower_ctr --;
-		if(SuperPower_ctr<1) SuperPower = 0;
-		if(!(bullet_ctr % cycle*speed) && fire){
-			if(SuperPower == 1){
-				Bullets[0][Bullets[0].length] = { x: x+plane_w/2, y: y+10, d: 0 ,c: "#FFFF44"};
-				Bullets[0][Bullets[0].length] = { x: x-plane_w/2, y: y+10, d: 0 ,c: "#FFFF44"};
-				Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: "#FFFF44"};
-			}
-			else if(SuperPower == 2){
-				Bullets[0][Bullets[0].length] = { x: x+plane_w/2, y: y+10, d: 0 ,c: "#5500FF"};
-				Bullets[0][Bullets[0].length] = { x: x-plane_w/2, y: y+10, d: 0 ,c: "#5500FF"};
-				Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: "#5500FF"};
-				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 1 ,c: "#5500FF"};
-				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 3 ,c: "#5500FF"};
-				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 5 ,c: "#5500FF"};
-				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 7 ,c: "#5500FF"};
-			}
-			else Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: "#FFFFFF"};
+		if(SuperPower && SuperPower_ctr<1){
+			SuperPower_ctr = 0;
+			SuperPower = 0;
 		}
+		if(SuperPower == 1){
+			if(!(bullet_ctr % cycle*speed*5) && fire){
+				Bullets[0][Bullets[0].length] = { x: x+plane_w/2, y: y+10, d: 0 ,c: super_color1};
+				Bullets[0][Bullets[0].length] = { x: x-plane_w/2, y: y+10, d: 0 ,c: super_color1};
+				Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: super_color1};
+			}
+		}
+		else if(SuperPower == 2){
+			/*if(!(bullet_ctr % cycle*speed) && fire){
+				Bullets[0][Bullets[0].length] = { x: x+plane_w/2, y: y+15, d: 0 ,c: super_color2};
+				Bullets[0][Bullets[0].length] = { x: x-plane_w/2, y: y+15, d: 0 ,c: super_color2};
+				
+				Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: super_color2};
+				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 1 ,c: super_color2};
+				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 3 ,c: super_color2};
+				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 5 ,c: super_color2};
+				Bullets[0][Bullets[0].length] = { x: x, y: y, d: 7 ,c: super_color2};
+			}*/
+			if(!(bullet_ctr % cycle*speed*100) && fire)	Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 11, c: super_color2, sp: split_num, dx: 0, dy: -4};
+		}
+		else if(!(bullet_ctr % cycle*speed) && fire) Bullets[0][Bullets[0].length] = { x: x, y: y-1, d: 0 ,c: "#FFFFFF"};
 	}	
-		
+	
 	function spawn_buff(possibility,kind){
 		if(!(n = Math.floor(Math.random() * 20)%5) || possibility){
-			if(kind == 1) Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 0+5, d: 10, c: "#FFFF44", buff: 1};
-			else if(kind == 2) Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 0+5, d: 10, c: "#5500FF", buff: 2};
+			if(kind == 1) Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 5, d: 10, c: super_color1, buff: 1};
+			else if(kind == 2) Bullets[1][Bullets[1].length] = { x: IcanFly.x, y: 5, d: 10, c: super_color2, buff: 2};
 		}
 	}
 	
 	function bossshoot(mode,bx,by,bw,bcolor,bspeed){
 		var appear1 = 5*3/2;
 		var appear2 = 5;
-		switch(mode){
-		case 0:
-			if(!(bullet_ctr % (25*bspeed))){
-				var x=IcanFly.x-bx;
-				var y=IcanFly.y-by;
-				var c = Math.sqrt(x*x + y*y);
-				x /= c; x *= 5;
-				y /= c; y *= 5;
-				Bullets[1][Bullets[1].length] = { x: bx, y: by+32, d: 8, c: "#66FF66", dx: x, dy: y, chase: true};
-				Bullets[1][Bullets[1].length] = { x: bx+29, y: by+15, d: 9, c: bcolor, dx: x, dy: y};
-				Bullets[1][Bullets[1].length] = { x: bx-29, y: by+15, d: 9, c: bcolor, dx: x, dy: y};
-				//Bullets[1][Bullets[1].length] = { x: bx+bw/2, y: by, d: 8 ,c: bcolor, dx:tmp.x, dy:tmp.y};	
-				//Bullets[1][Bullets[1].length] = { x: bx-bw/2, y: by, d: 8 ,c: bcolor, dx:tmp.x, dy:tmp.y};			
-			}
-			if(!(bullet_ctr % (10*bspeed))){
-				Bullets[1][Bullets[1].length] = { x: bx-13, y: by+28, d: 4, c: "#FF3333", dx: x, dy: y};
-				Bullets[1][Bullets[1].length] = { x: bx+13, y: by+28, d: 4, c: "#FF3333", dx: x, dy: y};
-			}
-			break;
-		case 1:
-			if(!(bullet_ctr % (15*bspeed))){
-			
-			}
-			break;
+
+		if(!(bullet_ctr % (25-mode*5)*bspeed)){
+			var x=IcanFly.x-bx;
+			var y=IcanFly.y-by;
+			var c = Math.sqrt(x*x + y*y);
+			x /= c; x *= 5;
+			y /= c; y *= 5;
+			Bullets[1][Bullets[1].length] = { x: bx, y: by+32, d: 8, c: "#66FF66", dx: x, dy: y, chase: true};
+			Bullets[1][Bullets[1].length] = { x: bx+29, y: by+15, d: 9, c: bcolor, dx: x, dy: y};
+			Bullets[1][Bullets[1].length] = { x: bx-29, y: by+15, d: 9, c: bcolor, dx: x, dy: y};
 		}
-		
-	
+		if(!(bullet_ctr % (10*bspeed))){
+			Bullets[1][Bullets[1].length] = { x: bx-13, y: by+28, d: 4, c: "#FF3333", dx: x, dy: y};
+			Bullets[1][Bullets[1].length] = { x: bx+13, y: by+28, d: 4, c: "#FF3333", dx: x, dy: y};
+		}
+		if(!(bullet_ctr % 200)){
+			if(mode){
+				Bullets[1][Bullets[1].length] = { x: bx-13, y: by+28, d: 11, c: "#FF00FF", sp: split_num, dx: -1, dy: 4};
+				Bullets[1][Bullets[1].length] = { x: bx+13, y: by+28, d: 11, c: "#FF00FF", sp: split_num, dx: 1, dy: 4};
+			}
+		}
 	}
 	
 	function drawBoss(bx,by,bw,bspeed,bcolor,index){
-		ctx.strokeStyle = bcolor;
+		ctx.strokeStyle = bcolor;//////draw boss's wing, so many lines!!!!! but looks good
 		ctx.lineWidth = 4;
 		ctx.beginPath();
 			ctx.moveTo(bx-10,by); ctx.lineTo(bx-50,by-5); ctx.lineTo(bx-58,by-21);
@@ -408,56 +448,59 @@
 			ctx.stroke();
 			ctx.moveTo(bx,by+10); ctx.lineTo(bx,by+32); 
 			ctx.stroke();
-		ctx.closePath();
+		ctx.closePath();//////draw boss's wing end, so many lines!!!!!
 		if(boss_mode<512){
 			bcolor = "#ff0000";
 			enemies[index].inv=false;
 			if(enemies[index].blood<10){
-				bossshoot(0,bx,by,bw,bcolor,bspeed);
+				bossshoot(true,bx,by,bw,bcolor,bspeed);
 			}
 			else {
-				bossshoot(0,bx,by,bw,bcolor,bspeed);
+				bossshoot(false,bx,by,bw,bcolor,bspeed);
 			}
 			boss_mode++;
 		}
 		else if(boss_mode==512){
+			bcolor = "#A52A2A";
 			enemies[index].inv=true;
 			if(enemies[index].blood<=10){
 				enemies[enemies.length] = {x: 380, y: 120, w: 20, dx: -5, dy: 3, t: 0, speed: 2, color: "#99BBFF",
-					x_upper_limit: 400, x_lower_limit: 160, y_upper_limit: 150, y_lower_limit: 0};
+					x_upper_limit: 400, x_lower_limit: 160, y_upper_limit: 150, y_lower_limit: 0, bullet: 1};
 				enemies[enemies.length] = {x: 20, y: 120, w: 20, dx: 5, dy: 3, t: 0, speed: 2, color: "#99BBFF",
-					x_upper_limit: 240, x_lower_limit: 0, y_upper_limit: 150, y_lower_limit: 0};
-				enemies[enemies.length] = {x: 380, y: 120, w: 10, dx: -6, dy: 3, t: 1, speed: 1, color: "#99BBFF",
+					x_upper_limit: 240, x_lower_limit: 0, y_upper_limit: 150, y_lower_limit: 0, bullet: 1};
+				enemies[enemies.length] = {x: 380, y: 120, w: 10, dx: -6, dy: 3, t: 1, speed: 3, color: "#99BBFF", blood: 1,
 					x_upper_limit: 500, x_lower_limit: 50, y_upper_limit: 700, y_lower_limit: -100};
-				enemies[enemies.length] = {x: 20, y: 120, w: 10, dx: 6, dy: 3, t: 1, speed: 1, color: "#99BBFF",
+				enemies[enemies.length] = {x: 20, y: 120, w: 10, dx: 6, dy: 3, t: 1, speed: 3, color: "#99BBFF", blood: 1,
 					x_upper_limit: 350, x_lower_limit: -100, y_upper_limit: 700, y_lower_limit: -100};
-				enemies[enemies.length] = {x: 380, y: 600, w: 10, dx: -6, dy: -3, t: 1, speed: 1, color: "#99BBFF",
+				enemies[enemies.length] = {x: 380, y: 600, w: 10, dx: -6, dy: -3, t: 1, speed: 3, color: "#99BBFF", blood: 1,
 					x_upper_limit: 500, x_lower_limit: 50, y_upper_limit: 700, y_lower_limit: -100};
-				enemies[enemies.length] = {x: 20, y: 600, w: 10, dx: 6, dy: -3, t: 1, speed: 1, color: "#99BBFF",
+				enemies[enemies.length] = {x: 20, y: 600, w: 10, dx: 6, dy: -3, t: 1, speed: 3, color: "#99BBFF", blood: 1,
 					x_upper_limit: 350, x_lower_limit: -100, y_upper_limit: 700, y_lower_limit: -100};
 			}
 			else {
-				//bossshoot(1,bx,by,bw,bcolor,bspeed);
 				enemies[enemies.length] = {x: 380, y: 120, w: 20, dx: -5, dy: 3, t: 0, speed: 2, color: "#99BBFF",
-					x_upper_limit: 400, x_lower_limit: 160, y_upper_limit: 150, y_lower_limit: 0};
+					x_upper_limit: 400, x_lower_limit: 160, y_upper_limit: 150, y_lower_limit: 0, bullet: 1};
 				enemies[enemies.length] = {x: 20, y: 120, w: 20, dx: 5, dy: 3, t: 0, speed: 2, color: "#99BBFF",
-					x_upper_limit: 240, x_lower_limit: 0, y_upper_limit: 150, y_lower_limit: 0};
+					x_upper_limit: 240, x_lower_limit: 0, y_upper_limit: 150, y_lower_limit: 0, bullet: 1};
 				enemies[enemies.length] = {x: 180, y: 120, w: 20, dx: 5, dy: 3, t: 0, speed: 2, color: "#99BBFF",
-					x_upper_limit: 400, x_lower_limit: 160, y_upper_limit: 150, y_lower_limit: 0};
+					x_upper_limit: 400, x_lower_limit: 160, y_upper_limit: 150, y_lower_limit: 0, bullet: 1};
 				enemies[enemies.length] = {x: 220, y: 120, w: 20, dx: -5, dy: 3, t: 0, speed: 2, color: "#99BBFF",
-					x_upper_limit: 240, x_lower_limit: 0, y_upper_limit: 150, y_lower_limit: 0};
+					x_upper_limit: 240, x_lower_limit: 0, y_upper_limit: 150, y_lower_limit: 0, bullet: 1};
 			}
 			boss_mode++;
 		}
-		else if(boss_mode == 1024 || enemies.length == 1){
-			spawn_buff(false,2);
+		else if(boss_mode >= 1024 || enemies.length == 1){
+			bcolor = "#A52A2A";
+			var type = Math.floor(Math.random() * 20)%2;
+			spawn_buff(true,type+1);
 			boss_mode = 0;
 		}
-		else if(boss_mode<1024){
+		else {
+			bcolor = "#A52A2A";
 			boss_mode++;
 		}
 		
-		if(boss_hurt>0){
+		if(boss_hurt){
 			boss_hurt --;
 			bcolor = "#FFB7DD";
 		}
@@ -488,10 +531,10 @@
 	function drawPlanes() {
 		drawMyPlane(ATKspeed);
 		for(i=0; i<enemies.length; i++){
-			if(enemies[i].t == 0)drawPlane_Triangle(enemies[i].x,enemies[i].y,enemies[i].w,enemies[i].speed,enemies[i].color);
+			if(enemies[i].t == 0)drawPlane_Triangle(enemies[i].x,enemies[i].y,enemies[i].w,enemies[i].speed,enemies[i].color,enemies[i].bullet);
 			if(enemies[i].t == 1)drawPlane_Round(enemies[i].x,enemies[i].y,enemies[i].w,enemies[i].speed,enemies[i].color);
 			if(enemies[i].t == 2)drawBoss(enemies[i].x,enemies[i].y,enemies[i].w,enemies[i].speed,enemies[i].color,i);
-			if(enemies[i].t == 3)drawPlane_Octagon(enemies[i].x,enemies[i].y,enemies[i].w,enemies[i].speed,enemies[i].color);
+			if(enemies[i].t == 3)drawPlane_Octagon(enemies[i].x,enemies[i].y,enemies[i].w,enemies[i].speed,enemies[i].color,enemies[i].bullet);
 			
 			
 			if(enemies[i].x + enemies[i].dx > enemies[i].x_upper_limit-enemies[i].w/2 || enemies[i].x + enemies[i].dx < enemies[i].x_lower_limit+enemies[i].w/2) {
@@ -511,6 +554,28 @@
 		score += point;
 	}
 	
+	function draw_hit_effect(){
+		for(i=0; i<effect.length; i++){
+			if(effect[i].t){
+				ctx.font = "30px Arial";
+				ctx.fillStyle = effect[i].c;
+				ctx.fillText(effect[i].text, effect[i].x, effect[i].y);
+				effect[i].w ++;
+				if(effect[i].w>40) effect.splice(i,1);
+			}
+			else{
+				ctx.beginPath();
+				ctx.lineWidth = 5;
+				ctx.arc(effect[i].x, effect[i].y, effect[i].w, 0, 2*Math.PI);
+				ctx.strokeStyle = "rgba(255, 0, 0, 0.7)";
+				ctx.stroke();
+				ctx.closePath();
+				effect[i].w ++;
+				if(effect[i].w>10) effect.splice(i,1);
+			}
+		}
+	}
+	
 	function collisionDetection() {
 		for(c=0; c<Bullets[0].length; c++) {
 			for(p=0; p<enemies.length; p++){
@@ -518,24 +583,30 @@
 					if((Bullets[0][c].y-enemies[p].y)<=2*(Bullets[0][c].x-enemies[p].x)+enemies[p].w &&
 						(Bullets[0][c].y-enemies[p].y)<=2*(enemies[p].x-Bullets[0][c].x)+enemies[p].w &&
 						Bullets[0][c].y>enemies[p].y){
+						effect[effect.length] = {x: Bullets[0][c].x, y: Bullets[0][c].y, w: 1, t: false};
 						Bullets[0].splice(c,1);
 						enemies.splice(p,1);
 						killplane(10);
-						if(SuperPower) SuperPower_ctr+=10;
+						if(SuperPower) SuperPower_ctr+=5;
 					}
 					
 				}
 				else if(enemies[p].t == 1 || enemies[p].t == 3){
 					if((Bullets[0][c].y-enemies[p].y) * (Bullets[0][c].y-enemies[p].y) + (Bullets[0][c].x-enemies[p].x) * (Bullets[0][c].x-enemies[p].x) <= enemies[p].w * enemies[p].w){
+						effect[effect.length] = {x: Bullets[0][c].x, y:Bullets[0][c].y, w: 1, t: false};
 						Bullets[0].splice(c,1);
-						spawn_buff(false,1);
-						enemies.splice(p,1);
-						killplane(25);
-						if(SuperPower) SuperPower_ctr+=25;
+						enemies[p].blood--;
+						if(enemies[p].blood<=0){
+							spawn_buff(false,1);
+							enemies.splice(p,1);
+							killplane(25);
+							if(SuperPower) SuperPower_ctr+=10;
+						}
 					}
 				}
 				else if(enemies[p].t == 2 && !(enemies[p].inv)){
 					if((Bullets[0][c].y-enemies[p].y) * (Bullets[0][c].y-enemies[p].y) + (Bullets[0][c].x-enemies[p].x) * (Bullets[0][c].x-enemies[p].x) <= enemies[p].w * enemies[p].w){
+						effect[effect.length] = {x: Bullets[0][c].x, y: Bullets[0][c].y, w: 1, t: false};
 						Bullets[0].splice(c,1);
 						enemies[p].blood --;
 						boss_hurt = 20;
@@ -543,24 +614,26 @@
 							spawn_buff(false,1);
 							enemies.splice(p,1);
 							killplane(150);
-							if(SuperPower) SuperPower_ctr+=150;
+							if(SuperPower) SuperPower_ctr+=100;
 						}
 					}
 				}
 			}
 		}
 		for(c=0; c<Bullets[1].length; c++) {
-			if((Bullets[1][c].y-IcanFly.y)>=2*(Bullets[1][c].x-IcanFly.x) &&
-				(Bullets[1][c].y-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x) &&
-				Bullets[1][c].y<IcanFly.y+IcanFly.plane_w){
-				if(Bullets[1][c].d != 10){
+			if(Bullets[1][c].d != 10){
+				if((Bullets[1][c].y-IcanFly.y)>=2*(Bullets[1][c].x-IcanFly.x) &&
+					(Bullets[1][c].y-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x) &&
+					Bullets[1][c].y<IcanFly.y+IcanFly.plane_w){
+					effect[effect.length] = {x: IcanFly.x, y: IcanFly.y, w: 1, t: false};
 					//console.log("injured");
 					if(SuperPower){
-						SuperPower_ctr -= 30;
+						SuperPower_ctr -= 50;
 					}
 					else{
 					if(blood > 1) blood --;
 						else if(life > 0){
+							effect[effect.length] = {x: IcanFly.x, y: IcanFly.y, w: 1, t: true, text: "-1", c: "#ff0000"};
 							life --;
 							blood = blood_max;
 						}
@@ -569,26 +642,42 @@
 							document.location.reload();
 						}
 					}
+					Bullets[1].splice(c,1);
 				}
-				else {
+			}
+			else {
+				if(
+					((Bullets[1][c].y+5-IcanFly.y)>=2*(Bullets[1][c].x+5-IcanFly.x) &&
+						(Bullets[1][c].y+5-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x+5) &&
+						Bullets[1][c].y+5<IcanFly.y+IcanFly.plane_w) ||
+					((Bullets[1][c].y-5-IcanFly.y)>=2*(Bullets[1][c].x+5-IcanFly.x) &&
+						(Bullets[1][c].y-5-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x+5) &&
+						Bullets[1][c].y-5<IcanFly.y+IcanFly.plane_w) ||
+					((Bullets[1][c].y+5-IcanFly.y)>=2*(Bullets[1][c].x-5-IcanFly.x) &&
+						(Bullets[1][c].y+5-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x-5) &&
+						Bullets[1][c].y+5<IcanFly.y+IcanFly.plane_w) ||
+					((Bullets[1][c].y-5-IcanFly.y)>=2*(Bullets[1][c].x-5-IcanFly.x) &&
+						(Bullets[1][c].y-5-IcanFly.y)>=2*(IcanFly.x-Bullets[1][c].x-5) &&
+						Bullets[1][c].y-5<IcanFly.y+IcanFly.plane_w)
+				){
 					//console.log("Buff_activated");
 					if(SuperPower == 1 && Bullets[1][c].buff == 2){
-					SuperPower = Bullets[1][c].buff;
-					SuperPower_ctr = 600;
+						SuperPower = Bullets[1][c].buff;
+						SuperPower_ctr = 800;//1n
 					}
 					else if(SuperPower == 2 && Bullets[1][c].buff == 1){
-					SuperPower_ctr += 180;
+						SuperPower_ctr += 240;//0.3n
 					}
 					else if(!SuperPower){
-					SuperPower = Bullets[1][c].buff;
-					SuperPower_ctr += Bullets[1][c].buff*300;
+						SuperPower = Bullets[1][c].buff;
+						SuperPower_ctr += Bullets[1][c].buff*400;//0.5n
 					}
 					else if(SuperPower == Bullets[1][c].buff){
-					SuperPower = Bullets[1][c].buff;
-					SuperPower_ctr += Bullets[1][c].buff*150;
+						SuperPower = Bullets[1][c].buff;
+						SuperPower_ctr += Bullets[1][c].buff*200;//0.25n
 					}
+					Bullets[1].splice(c,1);
 				}
-				Bullets[1].splice(c,1);
 			}
 		}
 	}
@@ -603,8 +692,8 @@
 			ctx2.fillText("|", 60+5*i, 50);
 		ctx2.fillText("] : "+blood*100/blood_max+"%", 65+5*blood_max, 50);
 		ctx2.font = "30px Arial";
-		if(SuperPower == 1) ctx2.fillStyle  = "#FFFF44";
-		else if(SuperPower == 2) ctx2.fillStyle  = "#5500FF";
+		if(SuperPower == 1) ctx2.fillStyle  = super_color1;
+		else if(SuperPower == 2) ctx2.fillStyle  = super_color2;
 		ctx2.fillText("Super: "+SuperPower_ctr, 170, 30);
 	}
 	
@@ -614,7 +703,11 @@
 		ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
 		if(!(enemies.length)){
 			Bullets[0] = [];
-			Bullets[1] = [];
+			if(level_ctr<10){
+				for(tmp=0; tmp<Bullets[1].length; tmp++){
+					if(Bullets[1][tmp].d != 10) Bullets[1].splice(tmp,1);
+				}
+			}
 			level_ctr ++;
 			if(level_ctr<level_refresh-50){
 				ctx.font = "25px Arial";
@@ -637,6 +730,7 @@
 		drawPlanes();
 		collisionDetection();
 		drawScore();
+		draw_hit_effect();
 
 		if(rightPressed && IcanFly.x < canvas.width-IcanFly.plane_w/2) IcanFly.x += movespeed;
 		if(leftPressed && IcanFly.x > IcanFly.plane_w/2) IcanFly.x -= movespeed;
